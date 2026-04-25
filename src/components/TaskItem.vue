@@ -1,8 +1,11 @@
 <template>
-  <div class="bg-white w-full p-2 rounded-md shadow-md border border-zinc-200">
+  <div
+    class="bg-white hover:bg-taupe-50 w-full p-2 rounded-md shadow-md border border-zinc-200 cursor-pointer"
+  >
     <h2 class="font-bold text-[#333333]">
       {{ props.task.title }}
     </h2>
+    <h3 class="text-sm">{{ props.task.description }}</h3>
     <div
       v-if="props.task.status == TaskStatus.TO_DO"
       class="bg-cyan-400 w-fit px-2 py-0.5 rounded-md my-2"
@@ -40,7 +43,25 @@
       <p class="text-pink-900 font-bold">High</p>
     </div>
 
-    <p class="text-zinc-400 text-sm">Due date : {{ props.task.dueDate }}</p>
+    <div class="flex justify-between">
+      <p class="text-zinc-400 text-sm">Due date : {{ props.task.dueDate }}</p>
+      <svg
+        class="w-6 h-6 text-gray-800 dark:text-white"
+        aria-hidden="true"
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        fill="currentColor"
+        viewBox="0 0 24 24"
+        @click.stop="handleOnDeleteTaskClick(props.task.id)"
+      >
+        <path
+          fill-rule="evenodd"
+          d="M8.586 2.586A2 2 0 0 1 10 2h4a2 2 0 0 1 2 2v2h3a1 1 0 1 1 0 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8a1 1 0 0 1 0-2h3V4a2 2 0 0 1 .586-1.414ZM10 6h4V4h-4v2Zm1 4a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Zm4 0a1 1 0 1 0-2 0v8a1 1 0 1 0 2 0v-8Z"
+          clip-rule="evenodd"
+        />
+      </svg>
+    </div>
   </div>
 </template>
 
@@ -52,6 +73,14 @@ interface Props {
   task: Task;
 }
 const props = defineProps<Props>();
+
+
+const emit = defineEmits(["onDeleteTask"]);
+
+const handleOnDeleteTaskClick = (id: string) => {
+  emit("onDeleteTask", id);
+}
+
 </script>
 
 <style></style>

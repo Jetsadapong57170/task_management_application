@@ -73,6 +73,7 @@ const taskFilter = reactive<TaskFilter>({
   sortOrder: null,
 });
 
+
 watch(()=> taskFilter.sort, (newValue)=>{
   if(newValue == TaskSort.DUE_DATE){
     taskSortOrderItems.value = [TaskSortOrder.DESC_DUE_DATE,TaskSortOrder.ASC_DUE_DATE]

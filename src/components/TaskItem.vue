@@ -1,6 +1,7 @@
 <template>
   <div
     class="bg-white hover:bg-taupe-50 w-full p-2 rounded-md shadow-md border border-zinc-200 cursor-pointer"
+     @click="handleOnUpdateTask"
   >
     <h2 class="font-bold text-[#333333]">
       {{ props.task.title }}
@@ -53,7 +54,7 @@
         height="24"
         fill="currentColor"
         viewBox="0 0 24 24"
-        @click.stop="handleOnDeleteTaskClick(props.task.id)"
+        @click.stop="handleOnDeleteTaskClick()"
       >
         <path
           fill-rule="evenodd"
@@ -68,17 +69,23 @@
 <script setup lang="ts">
 import { TaskPriority, TaskStatus } from "../enums";
 import type { Task } from "../models";
+import { useTaskStore } from "../stores";
 
 interface Props {
   task: Task;
 }
 const props = defineProps<Props>();
 
+const taskStore = useTaskStore()
 
-const emit = defineEmits(["onDeleteTask"]);
+const handleOnUpdateTask = () => {
+  taskStore.targetTask = props.task;
+  taskStore.isShowUpdate = true;
+}
 
-const handleOnDeleteTaskClick = (id: string) => {
-  emit("onDeleteTask", id);
+const handleOnDeleteTaskClick = () => {
+  taskStore.isShowConfirmDelete = true
+  taskStore.targetTask = props.task
 }
 
 </script>

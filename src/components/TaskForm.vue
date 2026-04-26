@@ -1,7 +1,7 @@
 <template>
   <div
-    class="absolute top-0 min-h-screen w-full z-100 flex justify-center items-center bg-black/30"
-    v-show="props.isShow"
+    class="fixed top-0 min-h-screen w-full z-100 flex justify-center items-center bg-black/30"
+    v-show="taskStore.isShowAdd"
   >
     <div class="p-8 bg-white shadow-sm rounded-md max-w-[350px] min-w-[350px]">
       <div class="flex justify-between">
@@ -93,14 +93,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from "vue";
+import { reactive } from "vue";
 import Dropdown from "./Dropdown.vue";
-import { TaskPriority, TaskSort, TaskStatus } from "../enums";
-
-interface Props {
-    isShow: boolean;
-}
-const props = defineProps<Props>()
+import { TaskPriority, TaskStatus } from "../enums";
+import { useTaskStore } from "../stores";
 
 interface TaskForm {
   title: string;
@@ -109,6 +105,7 @@ interface TaskForm {
   priority: TaskPriority | null;
   dueDate: string | null;
 }
+
 interface TaskFormError {
   title: string | null;
   description: string | null;
@@ -141,12 +138,7 @@ const taskPriorityItems = [
   TaskPriority.HIGH,
 ];
 
-const emit = defineEmits(["onAddTask", "update:isShow" ]);
-
-    const proxyIsShow = computed({
-        get:()=>props.isShow,
-        set:(value)=> emit("update:isShow", value) ,
-    })
+const taskStore = useTaskStore()
 
 const validateTaskForm = () => {
   if (taskForm.title == "") {
@@ -171,7 +163,7 @@ const validateTaskForm = () => {
 };
 
 const handleOnCloseAddTaskDialog = () =>{
-    proxyIsShow.value = false
+    taskStore.isShowAdd = false
     resetForm()
 }
 
@@ -186,15 +178,17 @@ const resetForm = () =>{
 const handleOnAddTaskClick = () => {
   const isValid = validateTaskForm();
   if (!isValid) return;
+ 
+  if (!taskForm.status || !taskForm.priority || !taskForm.dueDate) return;
 
-  const payload = {
+  const payload: any =  {
     title: taskForm.title,
     description: taskForm.description,
     status: taskForm.status,
     priority: taskForm.priority,
-    dueDate: taskForm.dueDate,
+    dueDate: taskForm.dueDate
   };
-  emit("onAddTask", payload);
+  taskStore.addTask(payload)
   handleOnCloseAddTaskDialog()
 };
 </script>

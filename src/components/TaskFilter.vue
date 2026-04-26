@@ -4,42 +4,48 @@
       <div>
         <span class="font-medium">Status</span>
         <dropdown
-          v-model:currentItem="proxyStatus"
+          v-model:currentItem="taskStore.status"
           :items="taskStatusItems"
         />
       </div>
       <div class="md:ml-3 xs:mt-2 md:mt-0">
         <span class="font-medium">Priority</span>
         <dropdown
-          v-model:currentItem="proxyPriority"
+          v-model:currentItem="taskStore.priority"
           :items="taskPriorityItems"
         />
       </div>
       <div class="md:ml-3 xs:mt-2 md:mt-0">
         <span class="font-medium">Sort by</span>
-        <dropdown
-          v-model:currentItem="proxySort"
-          :items="taskSortItems"
-        />
+        <dropdown v-model:currentItem="taskStore.sort" :items="taskSortItems" />
       </div>
       <div
         class="md:ml-3 xs:mt-2 md:mt-0"
-        v-if="proxySort != TaskSort.ALL"
+        v-if="taskStore.sort != TaskSort.ALL"
       >
         <span class="font-medium">Order</span>
         <dropdown
-          v-model:currentItem="proxySortOrder"
+          v-model:currentItem="taskStore.sortOrder"
           :items="taskSortOrderItems"
         />
+      </div>
+      <div class=" flex items-end xs:mt-4 md:ml-3 ">
+        <button
+          @click="resetFilter"
+          class="text-white md:w-fit xs:w-full  px-2 py-2.5  bg-yellow-700 box-border border border-transparent hover:bg-red-800 shadow-xs font-medium leading-5 rounded-md text-sm cursor-pointer"
+        >
+          Clear Filter
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from "vue";
+import { ref, watch } from "vue";
 import Dropdown from "./Dropdown.vue";
 import { TaskPriority, TaskStatus, TaskSort, TaskSortOrder } from "../enums";
+import { useTaskStore } from "../stores";
 
 const taskStatusItems = [
   TaskStatus.ALL,
@@ -59,56 +65,30 @@ const taskSortItems = [TaskSort.ALL, TaskSort.DUE_DATE, TaskSort.PRIORITY];
 
 const taskSortOrderItems = ref<TaskSortOrder[]>([]);
 
+const taskStore = useTaskStore();
 
-interface Props {
-  status: TaskStatus;
-  priority: TaskPriority;
-  sort: TaskSort;
-  sortOrder: TaskSortOrder | null;
-}
-const props = defineProps<Props>();
+const resetFilter = () => {
+  taskStore.status = TaskStatus.ALL;
+  taskStore.priority = TaskPriority.ALL;
+  taskStore.sort = TaskSort.ALL;
+  taskStore.sortOrder = null;
+};
 
-const emit = defineEmits([
-  "update:status",
-  "update:priority",
-  "update:sort",
-  "update:sortOrder",
-]);
-
-const proxyStatus = computed({
-  get: () => props.status,
-  set: (value) => emit("update:status", value),
-});
-
-const proxyPriority = computed({
-  get: () => props.priority,
-  set: (value) => emit("update:priority", value),
-});
-
-const proxySort = computed({
-  get: () => props.sort,
-  set: (value) => emit("update:sort", value),
-});
-
-const proxySortOrder = computed({
-  get: () => props.sortOrder,
-  set: (value) => emit("update:sortOrder", value),
-});
-
-watch( proxySort,
+watch(
+  () => taskStore.sort,
   (newValue) => {
     if (newValue == TaskSort.DUE_DATE) {
       taskSortOrderItems.value = [
         TaskSortOrder.DESC_DUE_DATE,
         TaskSortOrder.ASC_DUE_DATE,
       ];
-      proxySortOrder.value = TaskSortOrder.DESC_DUE_DATE;
+      taskStore.sortOrder = TaskSortOrder.DESC_DUE_DATE;
     } else if (newValue == TaskSort.PRIORITY) {
       taskSortOrderItems.value = [
         TaskSortOrder.DESC_PRIORITY,
         TaskSortOrder.ASC_PRIORITY,
       ];
-      proxySortOrder.value = TaskSortOrder.DESC_PRIORITY;
+      taskStore.sortOrder = TaskSortOrder.DESC_PRIORITY;
     }
   },
 );

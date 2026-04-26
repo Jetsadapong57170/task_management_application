@@ -1,7 +1,7 @@
 <template>
   <div
-    class="absolute top-0 min-h-screen w-full z-100 flex justify-center items-center bg-black/30"
-    v-show="props.isShow"
+    class="fixed top-0 min-h-screen w-full z-100 flex justify-center items-center bg-black/30"
+    v-show="taskStore.isShowUpdate"
   >
     <div class="p-8 bg-white shadow-sm rounded-md max-w-[350px] min-w-[350px]">
       <div class="flex justify-between">
@@ -93,17 +93,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, watch } from "vue";
+import { reactive, watch } from "vue";
 import Dropdown from "./Dropdown.vue";
-import { TaskPriority, TaskSort, TaskStatus } from "../enums";
+import { TaskPriority, TaskStatus } from "../enums";
 import type { Task } from "../models";
+import { useTaskStore } from "../stores";
 
-interface Props {
-    isShow: boolean;
-    task: Task | null;
-}
-const props = defineProps<Props>()
-
+const taskStore = useTaskStore()
 
 interface TaskFormError {
   title: string | null;
@@ -138,13 +134,6 @@ const taskPriorityItems = [
   TaskPriority.HIGH,
 ];
 
-const emit = defineEmits(["onUpdateTask", "update:isShow" ]);
-
-    const proxyIsShow = computed({
-        get:()=>props.isShow,
-        set:(value)=> emit("update:isShow", value) ,
-    })
-
 const validateTaskForm = () => {
   if (taskForm.title == "") {
     taskFormError.title = "Please fill task title";
@@ -168,16 +157,12 @@ const validateTaskForm = () => {
 };
 
 const handleOnCloseUpdateTaskDialog = () =>{
-    proxyIsShow.value = false
+    taskStore.isShowUpdate = false
     resetForm()
 }
 
 const resetForm = () =>{
-    taskForm.title = ""
-    taskForm.description = ""
-    taskForm.status = TaskStatus.TO_DO
-    taskForm.priority = TaskPriority.LOW
-    taskForm.dueDate = ""
+taskStore.targetTask = null
 }
 
 const handleOnUpdateTaskClick = () => {
@@ -192,20 +177,21 @@ const handleOnUpdateTaskClick = () => {
     priority: taskForm.priority,
     dueDate: taskForm.dueDate,
   };
-  emit("onUpdateTask", payload);
+  taskStore.updateTask(payload)
   handleOnCloseUpdateTaskDialog()
 };
 
-watch(()=> props.isShow, (newValue)=>{
+watch(()=> taskStore.isShowUpdate, (newValue)=>{
  if(newValue){
-    taskForm.id = props.task?.id ?? ""
-    taskForm.title = props.task?.title ?? ""
-     taskForm.description = props.task?.description ?? ""
-     taskForm.status = props.task?.status ?? TaskStatus.TO_DO
-      taskForm.priority = props.task?.priority ?? TaskPriority.LOW
-      taskForm.dueDate = props.task?.dueDate ?? ""
+    taskForm.id = taskStore.targetTask?.id ?? ""
+    taskForm.title = taskStore.targetTask?.title ?? ""
+    taskForm.description = taskStore.targetTask?.description ?? ""
+    taskForm.status = taskStore.targetTask?.status ?? TaskStatus.TO_DO
+    taskForm.priority = taskStore.targetTask?.priority ?? TaskPriority.LOW
+    taskForm.dueDate = taskStore.targetTask?.dueDate ?? ""
  }
 })
+
 </script>
 
 <style></style>

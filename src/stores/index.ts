@@ -65,7 +65,7 @@ export const useTaskStore = defineStore("task", {
     },
   },
   actions: {
-    addTask(payload: any) {
+    addTask(payload: AddTask) {
       const newTask = {
         id: crypto.randomUUID(),
         title: payload.title,

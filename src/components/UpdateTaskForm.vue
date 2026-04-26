@@ -1,11 +1,11 @@
 <template>
   <div
     class="fixed top-0 min-h-screen w-full z-100 flex justify-center items-center bg-black/30"
-    v-show="taskStore.isShowAdd"
+    v-show="taskStore.isShowUpdate"
   >
     <div class="p-8 bg-white shadow-sm rounded-md max-w-[350px] min-w-[350px]">
       <div class="flex justify-between">
-        <span class="text-2xl text-yellow-950 font-bold">Add Task</span>
+        <span class="text-2xl text-yellow-950 font-bold">Update Task</span>
         <svg
           class="w-6 h-6 text-gray-800 dark:text-white cursor-pointer"
           aria-hidden="true"
@@ -14,7 +14,7 @@
           height="24"
           fill="none"
           viewBox="0 0 24 24"
-          @click="handleOnCloseAddTaskDialog"
+          @click="handleOnCloseUpdateTaskDialog"
         >
           <path
             stroke="currentColor"
@@ -84,27 +84,22 @@
       </div>
       <button
         class="text-white w-full py-2.5 mt-2 bg-yellow-900 box-border border border-transparent hover:bg-yellow-800 shadow-xs font-medium leading-5 rounded-md text-sm cursor-pointer"
-        @click="handleOnAddTaskClick"
+        @click="handleOnUpdateTaskClick"
       >
-        Add Task
+        Update Task
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { reactive, watch } from "vue";
 import Dropdown from "./Dropdown.vue";
 import { TaskPriority, TaskStatus } from "../enums";
+import type { Task } from "../models";
 import { useTaskStore } from "../stores";
 
-interface TaskForm {
-  title: string;
-  description: string;
-  status: TaskStatus | null;
-  priority: TaskPriority | null;
-  dueDate: string | null;
-}
+const taskStore = useTaskStore()
 
 interface TaskFormError {
   title: string | null;
@@ -112,12 +107,13 @@ interface TaskFormError {
   dueDate: string | null;
 }
 
-const taskForm = reactive<TaskForm>({
+const taskForm = reactive<Task>({
+    id: "",
   title: "",
   description: "",
   status: TaskStatus.TO_DO,
   priority: TaskPriority.LOW,
-  dueDate: null,
+  dueDate: "",
 });
 
 const taskFormError = reactive<TaskFormError>({
@@ -138,8 +134,6 @@ const taskPriorityItems = [
   TaskPriority.HIGH,
 ];
 
-const taskStore = useTaskStore()
-
 const validateTaskForm = () => {
   if (taskForm.title == "") {
     taskFormError.title = "Please fill task title";
@@ -153,7 +147,7 @@ const validateTaskForm = () => {
   } else {
     taskFormError.description = null;
   }
-  if (taskForm.dueDate == null) {
+  if (taskForm.dueDate == "") {
     taskFormError.dueDate = "Please select task due date";
     return false;
   } else {
@@ -162,35 +156,42 @@ const validateTaskForm = () => {
   return true;
 };
 
-const handleOnCloseAddTaskDialog = () =>{
-    taskStore.isShowAdd = false
+const handleOnCloseUpdateTaskDialog = () =>{
+    taskStore.isShowUpdate = false
     resetForm()
 }
 
 const resetForm = () =>{
-    taskForm.title = ""
-    taskForm.description = ""
-    taskForm.status = TaskStatus.TO_DO
-    taskForm.priority = TaskPriority.LOW
-    taskForm.dueDate = null
+taskStore.targetTask = null
 }
 
-const handleOnAddTaskClick = () => {
+const handleOnUpdateTaskClick = () => {
   const isValid = validateTaskForm();
   if (!isValid) return;
- 
-  if (!taskForm.status || !taskForm.priority || !taskForm.dueDate) return;
 
-  const payload: any =  {
+  const payload = {
+    id: taskForm.id,
     title: taskForm.title,
     description: taskForm.description,
     status: taskForm.status,
     priority: taskForm.priority,
-    dueDate: taskForm.dueDate
+    dueDate: taskForm.dueDate,
   };
-  taskStore.addTask(payload)
-  handleOnCloseAddTaskDialog()
+  taskStore.updateTask(payload)
+  handleOnCloseUpdateTaskDialog()
 };
+
+watch(()=> taskStore.isShowUpdate, (newValue)=>{
+ if(newValue){
+    taskForm.id = taskStore.targetTask?.id ?? ""
+    taskForm.title = taskStore.targetTask?.title ?? ""
+    taskForm.description = taskStore.targetTask?.description ?? ""
+    taskForm.status = taskStore.targetTask?.status ?? TaskStatus.TO_DO
+    taskForm.priority = taskStore.targetTask?.priority ?? TaskPriority.LOW
+    taskForm.dueDate = taskStore.targetTask?.dueDate ?? ""
+ }
+})
+
 </script>
 
 <style></style>
